@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>لوحة المحلل - توقعات مباشرة</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#F3F5EF;--card:#fff;--ink:#14213D;--mut:#5b6577;--line:#d5dbcf;--pitch:#1F7A4D;--soft:#E4EFE6;--red:#C8372D;--amber:#9A6400;--amberbg:#FFF3D6;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0F1720;--card:#17212C;--ink:#EAF0F6;--mut:#9AA7B6;--line:#2A3745;--pitch:#3DBE82;--soft:#1B2B26;--red:#FF6B5E;--amber:#E9B44C;--amberbg:#2E2716}}
+:root[data-theme="dark"]{--bg:#0F1720;--card:#17212C;--ink:#EAF0F6;--mut:#9AA7B6;--line:#2A3745;--pitch:#3DBE82;--soft:#1B2B26;--red:#FF6B5E;--amber:#E9B44C;--amberbg:#2E2716}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Tajawal,system-ui,sans-serif;line-height:1.6}
+header{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:2px solid var(--ink)}
+h1{margin:0;font-size:22px;font-weight:800}
+h2{margin:0 0 10px;font-size:18px;font-weight:800}
+.tag{font-size:13px;color:var(--amber);background:var(--amberbg);padding:2px 10px;border-radius:99px}
+.grid{display:grid;gap:14px;padding:14px 16px;max-width:1080px;margin:0 auto}
+@media(min-width:820px){.grid{grid-template-columns:280px 1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
+#list button{display:block;width:100%;text-align:right;font:inherit;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+#list button[aria-pressed="true"]{border:2px solid var(--ink);background:var(--soft)}
+#list .t{font-weight:700}
+#list .m{font-size:13px;color:var(--mut);display:flex;justify-content:space-between;gap:8px}
+.dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--red);margin-inline-end:6px;animation:p 1.4s infinite}
+@keyframes p{50%{opacity:.25}}
+@media(prefers-reduced-motion:reduce){.dot{animation:none}}
+.chip{font-size:12px;background:var(--amberbg);color:var(--amber);padding:0 8px;border-radius:99px}
+.hd{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.hd .tm{font-size:20px;font-weight:800}
+.hd .sc{font-size:34px;font-weight:800;letter-spacing:2px;direction:ltr}
+.hd .mn{color:var(--red);font-weight:700}
+.row{display:grid;grid-template-columns:40px 1fr 40px;gap:8px;align-items:center;margin:6px 0;font-size:14px}
+.row .l{grid-column:1/-1;color:var(--mut);font-size:13px;margin-bottom:-4px;text-align:center}
+.bar{display:flex;height:8px;border-radius:4px;overflow:hidden;background:var(--line);direction:ltr}
+.bar i{display:block;background:var(--pitch)}
+.bar i+i{background:var(--ink);opacity:.55}
+.row b{text-align:center}
+.helper{border-inline-start:5px solid var(--amber);background:var(--amberbg)}
+.helper small{color:var(--mut)}
+label{display:block;font-size:14px;font-weight:500;margin-bottom:10px}
+select,input[type=number],input[type=text]{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:8px}
+.f2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+button.pub{width:100%;font:inherit;font-weight:800;font-size:18px;color:#fff;background:var(--red);border:0;border-radius:8px;padding:12px;cursor:pointer}
+button.ghost{font:inherit;color:var(--ink);background:transparent;border:1px solid var(--line);border-radius:8px;padding:8px 12px;cursor:pointer}
+button.skip{width:100%;margin-top:8px}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--pitch);outline-offset:2px}
+.pred{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--card)}
+.pred .top{display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap;align-items:baseline}
+.pred .mt{font-size:13px;color:var(--mut)}
+.st{font-weight:700;padding:0 10px;border-radius:99px;font-size:14px}
+.st.live{background:var(--amberbg);color:var(--amber)}
+.st.won{background:var(--soft);color:var(--pitch)}
+.st.lost{background:#f8dedb;color:#a12a21}
+.st.cancel{background:var(--line);color:var(--mut)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .st.lost{background:#3a1f1c;color:var(--red)}}
+:root[data-theme="dark"] .st.lost{background:#3a1f1c;color:var(--red)}
+.acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
+.acts input{flex:1;min-width:140px}
+details{margin-top:8px;font-size:13px;color:var(--mut)}
+.sum{color:var(--mut);margin-bottom:10px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 16px 40px}
+#toast{position:fixed;inset-inline:12px;top:calc(env(safe-area-inset-top,0px) + 8px);max-width:460px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:12px;padding:10px 14px;display:none;z-index:9}
+#toast b{display:block}
+</style>
+</head>
+<body>
+<header>
+  <h1>لوحة المحلل</h1>
+  <span class="tag" id="quota">بيانات حقيقية من API-Football</span>
+</header>
+
+<main class="grid">
+  <aside>
+    <h2>المباريات المباشرة</h2>
+    <div id="list"></div>
+  </aside>
+  <section>
+    <div class="card" id="head"></div>
+    <div class="card" id="stats"></div>
+    <div class="card helper" id="helper"></div>
+    <div class="card" id="form">
+      <h2>توقع جديد</h2>
+      <div class="f2">
+        <label style="grid-column:1/-1">السوق <select id="fMk"></select></label>
+        <label id="wTeam">الفريق <select id="fTeam"></select></label>
+        <label>الخيار <select id="fSide"></select></label>
+        <label id="wLine">الخط <select id="fLine"></select></label>
+        <label id="wMin">قبل الدقيقة <input type="number" id="fEnd" min="1" max="90"></label>
+      </div>
+      <button class="pub" id="pubBtn">🔴 إصدار التوقع</button>
+      <button class="ghost skip" id="skipBtn">🚫 لا يوجد توقع لهذه المباراة</button>
+      <p class="sum">الأسواق مشابهة لأسواق المراهنات المعروفة، لكن التطبيق لا يعرض أسعارا ولا يقبل رهانات.</p>
+    </div>
+  </section>
+</main>
+
+<div class="wrap">
+  <h2>سجل توقعاتي</h2>
+  <div class="sum" id="sum"></div>
+  <div id="preds"></div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const UN={goal:'أهداف',corner:'ركنيات',foul:'أخطاء',card:'بطاقات'};
+const PER={full:'',h1:' في الشوط الأول',h2:' في الشوط الثاني'};
+const MK={
+ goals:{l:'مجموع الأهداف: أكثر / أقل',ty:'goal',per:'full',ou:1,line:2.5,max:6.5},
+ goals1:{l:'أهداف الشوط الأول: أكثر / أقل',ty:'goal',per:'h1',ou:1,line:1.5,max:4.5},
+ goals2:{l:'أهداف الشوط الثاني: أكثر / أقل',ty:'goal',per:'h2',ou:1,line:1.5,max:4.5},
+ tgoals:{l:'أهداف فريق معين: أكثر / أقل',ty:'goal',per:'full',ou:1,team:2,line:1.5,max:4.5},
+ g1:{l:'هدف في الشوط الأول',ty:'goal',per:'h1',yn:1},
+ g2:{l:'هدف في الشوط الثاني',ty:'goal',per:'h2',yn:1},
+ btts:{l:'كلا الفريقين يسجل',yn:1},
+ res:{l:'نتيجة المباراة (1 / X / 2)',pick:1},
+ dc:{l:'الفرصة المزدوجة',pick:1},
+ next:{l:'الهدف القادم',pick:1},
+ before:{l:'هدف قبل دقيقة معينة',yn:1,team:1,min:1},
+ corner:{l:'الركنيات: أكثر / أقل',ty:'corner',per:'full',ou:1,team:1,line:9.5,max:15.5},
+ card:{l:'البطاقات: أكثر / أقل',ty:'card',per:'full',ou:1,team:1,line:3.5,max:8.5},
+ foul:{l:'الأخطاء: أكثر / أقل',ty:'foul',per:'full',ou:1,team:1,line:23.5,max:35.5}
+};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const $=id=>document.getElementById(id);
+let M=[],D={},P=[],sel=null,prev={},SK={};
+const j=async(u,o)=>(await fetch(u,o)).json();
+const post=(u,b)=>j(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(b||{})});
+const cur=()=>Object.assign({},M.find(m=>m.id===sel)||{},D[sel]||{});
+function toast(t,b){const el=$('toast');el.innerHTML='<b>'+esc(t)+'</b>'+esc(b||'');el.style.display='block';clearTimeout(toast.h);toast.h=setTimeout(()=>el.style.display='none',5000)}
+
+function pText(p){const h=p.hn,a=p.an,s=MK[p.k],tn=p.team<0?'':(p.team?a:h);
+ if(s.ou)return (p.side==='over'?'أكثر من ':'أقل من ')+p.line+' '+UN[s.ty]+PER[s.per]+(tn?' ('+tn+')':'');
+ if(p.k==='g1'||p.k==='g2')return (p.side==='yes'?'هدف':'لا هدف')+PER[s.per];
+ if(p.k==='btts')return 'كلا الفريقين يسجل: '+(p.side==='yes'?'نعم':'لا');
+ if(p.k==='res')return 'نتيجة المباراة: '+({'1':h+' يفوز','X':'تعادل','2':a+' يفوز'})[p.side];
+ if(p.k==='dc')return 'الفرصة المزدوجة: '+({'1X':h+' أو تعادل','X2':'تعادل أو '+a,'12':'لا تعادل'})[p.side];
+ if(p.k==='next')return 'الهدف القادم: '+({home:h,away:a,none:'لا هدف'})[p.side];
+ return (p.side==='yes'?(tn?tn+' يسجل':'هدف'):(tn?tn+' لا يسجل':'لا هدف'))+' قبل الدقيقة '+p.end}
+
+async function loadList(){
+ try{const d=await j('/api/live');
+  if(d.error){toast('خطأ من الخدمة',d.error);return}
+  M=d.matches;
+  $('quota').textContent=d.quota!==null&&d.quota!==undefined?'طلبات متبقية اليوم: '+d.quota:'بيانات حقيقية';
+  if(M.length&&!M.find(m=>m.id===sel)){sel=M[0].id;await loadDetail();updateForm()}
+  renderList();renderMatch();
+ }catch(e){toast('تعذر الاتصال بالخادم',e.message)}
+}
+async function loadDetail(){if(sel===null)return;try{const d=await j('/api/match/'+sel);if(!d.error){D[sel]=d;renderMatch()}}catch(e){}}
+async function loadPreds(){
+ try{const d=await j('/api/preds');
+  d.forEach(p=>{if(prev[p.id]==='live'&&(p.st==='won'||p.st==='lost'))toast(p.st==='won'?'✅ التوقع تحقق':'❌ التوقع لم يتحقق',p.hn+' × '+p.an+': '+pText(p));prev[p.id]=p.st});
+  P=d;
+  if(!(document.activeElement&&document.activeElement.closest&&document.activeElement.closest('#preds')))renderPreds();
+ }catch(e){}
+}
+
+function renderList(){
+ $('list').innerHTML=M.length?M.map(m=>'<button data-id="'+m.id+'" aria-pressed="'+(m.id===sel)+'"><div class="t">'+esc(m.h)+' × '+esc(m.a)+'</div><div class="m"><span><span class="dot"></span>'+m.min+"'"+'</span><span>'+m.g[0]+' - '+m.g[1]+'</span>'+(SK[m.id]?'<span class="chip">لا توقع</span>':'')+'</div><div class="m"><span>'+esc(m.league)+'</span></div></button>').join(''):'<div class="sum">لا توجد مباريات مباشرة الآن. جرّب لاحقا.</div>';
+}
+function row(l,a,b,pct){const tot=(a+b)||1;return '<div class="row"><div class="l">'+l+'</div><b>'+a+(pct?'%':'')+'</b><div class="bar"><i style="width:'+a/tot*100+'%"></i><i style="width:'+b/tot*100+'%"></i></div><b>'+b+(pct?'%':'')+'</b></div>'}
+function renderMatch(){
+ const m=cur();
+ if(!m.id){$('head').innerHTML='<div class="sum">لا توجد مباراة محددة.</div>';$('stats').innerHTML='';$('helper').innerHTML='';return}
+ const s=m.s||{corner:[0,0],foul:[0,0],shots:[0,0],tgt:[0,0],poss:[0,0]},ev=m.ev||[],cards=[0,1].map(t=>ev.filter(e=>e.type==='card'&&e.t===t).length);
+ $('head').innerHTML='<div class="hd"><span class="tm">'+esc(m.h)+'</span><span class="sc">'+m.g[0]+' - '+m.g[1]+'</span><span class="tm">'+esc(m.a)+'</span></div><div class="hd"><span class="mn"><span class="dot"></span>الدقيقة '+m.min+'</span><span class="sum">'+esc(m.league)+'</span></div>';
+ $('stats').innerHTML=D[m.id]?row('الاستحواذ',s.poss[0],s.poss[1],1)+row('التسديدات',s.shots[0],s.shots[1])+row('على المرمى',s.tgt[0],s.tgt[1])+row('الركنيات',s.corner[0],s.corner[1])+row('الأخطاء',s.foul[0],s.foul[1])+row('البطاقات',cards[0],cards[1]):'<div class="sum">جار تحميل الإحصائيات...</div>';
+ const sc=t=>s.shots[t]+2*s.tgt[t]+s.corner[t],d=sc(0)-sc(1),big=Math.abs(d)>=Math.max(6,.3*(sc(0)+sc(1)));
+ $('helper').innerHTML='<b>مساعد التحليل</b><br>'+(big?'مؤشرات البيانات تدعم وجود ضغط هجومي من '+esc(d>0?m.h:m.a)+'.':'لا يوجد ضغط هجومي واضح من أحد الفريقين حاليا.')+'<br><small>معلومات فقط. لا شيء يُنشر إلا بضغطك أنت.</small>';
+}
+function renderPreds(){
+ const won=P.filter(p=>p.st==='won').length,lost=P.filter(p=>p.st==='lost').length;
+ $('sum').textContent=P.length?('المنشورة: '+P.length+'، تحققت: '+won+'، لم تتحقق: '+lost+(won+lost?('، نسبة التحقق: '+Math.round(won/(won+lost)*100)+'%'):'')):'لم تصدر أي توقع بعد. اختر مباراة وأصدر أول توقع.';
+ const L={live:'جار المتابعة',won:'✅ تحقق',lost:'❌ لم يتحقق',cancel:'أُلغي'};
+ $('preds').innerHTML=P.map(p=>'<div class="pred"><div class="top"><b>'+esc(pText(p))+'</b><span class="st '+p.st+'">'+L[p.st]+'</span></div><div class="mt">'+esc(p.hn)+' × '+esc(p.an)+' - نُشر عند الدقيقة '+p.at+"'"+(p.note?' - ملاحظة: '+esc(p.note):'')+'</div>'+
+  (p.st==='live'?'<div class="acts">'+(p.k==='before'?'<button class="ghost" data-act="ext" data-id="'+p.id+'">تمديد 5 دقائق</button>':'')+'<button class="ghost" data-act="cancel" data-id="'+p.id+'">إلغاء التوقع</button><input type="text" id="n'+p.id+'" placeholder="أضف ملاحظة" aria-label="ملاحظة"><button class="ghost" data-act="note" data-id="'+p.id+'">حفظ الملاحظة</button></div>':'')+
+  '<details><summary>تاريخ التعديلات ('+p.hist.length+')</summary>'+p.hist.map(h=>'<div>'+esc(h)+'</div>').join('')+'</details></div>').join('');
+}
+
+function updateForm(){const c=cur(),m=c.id?c:{h:'',a:'',min:0},k=$('fMk').value,s=MK[k];
+ $('wTeam').style.display=s.team?'block':'none';
+ $('fTeam').innerHTML=(s.team===2?'':'<option value="-1">الكل</option>')+'<option value="0">'+esc(m.h)+'</option><option value="1">'+esc(m.a)+'</option>';
+ let so;
+ if(s.ou)so=[['over','أكثر من'],['under','أقل من']];
+ else if(k==='res')so=[['1',m.h+' يفوز'],['X','تعادل'],['2',m.a+' يفوز']];
+ else if(k==='dc')so=[['1X',m.h+' أو تعادل'],['X2','تعادل أو '+m.a],['12','لا تعادل']];
+ else if(k==='next')so=[['home',m.h],['away',m.a],['none','لا هدف']];
+ else so=[['yes','نعم'],['no','لا']];
+ $('fSide').innerHTML=so.map(o=>'<option value="'+o[0]+'">'+esc(o[1])+'</option>').join('');
+ $('wLine').style.display=s.ou?'block':'none';
+ if(s.ou){let h='';for(let v=.5;v<=s.max;v++)h+='<option value="'+v+'"'+(v===s.line?' selected':'')+'>'+v+'</option>';$('fLine').innerHTML=h}
+ $('wMin').style.display=s.min?'block':'none';
+ $('fEnd').value=Math.min(90,(m.min||0)+8);
+}
+async function publish(){
+ const m=cur();if(!m.id)return toast('اختر مباراة','لا توجد مباراة محددة.');
+ const k=$('fMk').value,s=MK[k];
+ const r=await post('/api/preds',{mid:m.id,k,team:s.team?parseInt($('fTeam').value,10):-1,side:$('fSide').value,line:s.ou?parseFloat($('fLine').value):0,end:s.min?parseInt($('fEnd').value,10):90});
+ if(r.error)return toast('لم يُنشر التوقع',r.error);
+ P.unshift(r);prev[r.id]='live';SK[m.id]=false;renderPreds();renderList();
+ toast('🔔 توقع مباشر جديد (معاينة إشعار المستخدم)',m.h+' × '+m.a+' - '+pText(r)+' - الدقيقة الحالية: '+m.min+"'");
+}
+$('fMk').innerHTML=Object.keys(MK).map(k=>'<option value="'+k+'">'+MK[k].l+'</option>').join('');
+$('fMk').onchange=updateForm;
+$('pubBtn').onclick=publish;
+$('skipBtn').onclick=()=>{const m=cur();if(!m.id)return;SK[m.id]=!SK[m.id];renderList();toast(SK[m.id]?'تم وضع علامة: لا توقع':'أُزيلت العلامة',m.h+' × '+m.a)};
+$('list').onclick=async e=>{const b=e.target.closest('button');if(!b)return;sel=+b.dataset.id;renderList();renderMatch();updateForm();await loadDetail()};
+$('preds').onclick=async e=>{const b=e.target.closest('[data-act]');if(!b)return;
+ const r=await post('/api/preds/'+b.dataset.id+'/'+b.dataset.act,b.dataset.act==='note'?{note:($('n'+b.dataset.id)||{}).value||''}:{});
+ if(r.error)return toast('تعذر التعديل',r.error);
+ P=P.map(p=>p.id===r.id?r:p);prev[r.id]=r.st;renderPreds();
+};
+updateForm();renderPreds();
+loadPreds().then(loadList);
+setInterval(loadList,60000);setInterval(loadDetail,60000);setInterval(loadPreds,30000);
+</script>
+</body>
+</html>
