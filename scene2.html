@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl"><head><meta charset="utf-8">
+<style>
+@font-face{font-family:Cairo;src:url(fonts/cairo-arabic-700-normal.woff2);font-weight:700}
+@font-face{font-family:Cairo;src:url(fonts/cairo-arabic-900-normal.woff2);font-weight:900}
+@font-face{font-family:Cairo;src:url(fonts/cairo-latin-900-normal.woff2);font-weight:900;unicode-range:U+0000-00FF}
+@font-face{font-family:Cairo;src:url(fonts/cairo-latin-700-normal.woff2);font-weight:700;unicode-range:U+0000-00FF}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{width:1280px;height:720px;overflow:hidden;background:#050b16;font-family:Cairo,sans-serif;color:#fff}
+#stage{position:absolute;inset:0;overflow:hidden}
+.bg{position:absolute;inset:0;background:radial-gradient(ellipse 70% 55% at 62% 38%,#173765 0%,#0c1d38 45%,#060d1a 100%)}
+.floor{position:absolute;left:0;right:0;bottom:0;height:200px;background:linear-gradient(#0a1426,#03070e)}
+.floorline{position:absolute;left:0;right:0;bottom:200px;height:2px;background:linear-gradient(90deg,transparent,#c9a227 30%,#f2d27a 50%,#c9a227 70%,transparent)}
+.beam{position:absolute;top:-40px;width:180px;height:620px;background:linear-gradient(rgba(242,210,122,.16),rgba(242,210,122,0));transform-origin:top center;filter:blur(6px)}
+.pillar{position:absolute;top:60px;width:10px;height:440px;border-radius:5px;background:linear-gradient(#c9a227,#6d5612)}
+.screen{position:absolute;left:470px;top:70px;width:740px;height:410px;border-radius:18px;background:linear-gradient(160deg,#122648,#0a1630);border:3px solid #c9a227;box-shadow:0 0 60px rgba(242,201,76,.25),inset 0 0 80px rgba(0,0,0,.5);overflow:hidden}
+.scr-h{position:absolute;top:0;left:0;right:0;height:52px;background:linear-gradient(90deg,#b8901c,#f2d27a,#b8901c);color:#0a1424;font-weight:900;font-size:26px;display:flex;align-items:center;justify-content:center;gap:12px}
+.panel{position:absolute;left:0;right:0;top:52px;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.desk{position:absolute;left:420px;top:520px;width:840px;height:110px;border-radius:14px 14px 0 0;background:linear-gradient(#18325a,#0b1830);border-top:3px solid #c9a227;display:flex;align-items:center;justify-content:center}
+.desk span{font-weight:900;font-size:44px;letter-spacing:4px;color:#f2c94c;direction:ltr}
+.lower{position:absolute;left:0;right:0;bottom:30px;height:64px;display:flex;direction:rtl}
+.lower .name{background:#0a1424;border:2px solid #c9a227;color:#f2c94c;font-weight:900;font-size:28px;padding:0 28px;display:flex;align-items:center}
+.lower .bar{flex:1;background:linear-gradient(90deg,#f2d27a,#c9a227);color:#0a1424;font-weight:700;font-size:26px;display:flex;align-items:center;padding:0 26px}
+.live{position:absolute;left:24px;bottom:48px;display:flex;align-items:center;gap:8px;font-weight:900;font-size:22px;color:#fff;direction:ltr;background:#c62828;padding:2px 12px;border-radius:6px}
+.kit{width:110px;height:130px}
+.tname{font-weight:900;font-size:38px;margin-top:8px}
+.big{font-weight:900;color:#f2c94c}
+.dots{display:flex;gap:8px;direction:rtl;justify-content:center}
+.dot{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px;color:#0a1424;font-family:Cairo}
+.W{background:#4cd39b}.D{background:#b4b2a9}.L{background:#f07a7a}
+.meter{width:360px;height:28px;border-radius:14px;background:#22385e;overflow:hidden;border:2px solid #3b5a8c}
+.meter div{height:100%;background:linear-gradient(90deg,#c9a227,#f2d27a)}
+.logo{position:absolute;left:28px;top:22px;font-weight:900;font-size:26px;color:#f2c94c;direction:ltr;letter-spacing:2px}
+.flash{position:absolute;inset:0;background:#fff;pointer-events:none}
+</style></head><body>
+<div id="stage">
+  <div class="bg"></div>
+  <div class="beam" id="b1" style="left:520px"></div>
+  <div class="beam" id="b2" style="left:980px"></div>
+  <div class="pillar" style="left:440px"></div><div class="pillar" style="left:1240px"></div>
+  <div class="floor"></div><div class="floorline"></div>
+  <div class="screen" id="screen"><div class="scr-h" id="scrh">MASTER GOAL</div><div class="panel" id="panel"></div></div>
+  <div class="desk"><span>MASTER GOAL</span></div>
+  <svg id="coach" viewBox="0 0 400 640" style="position:absolute;left:30px;top:70px;width:400px;height:640px;overflow:visible"></svg>
+  <div class="logo">MASTER GOAL</div>
+  <div class="lower" id="lower"><div class="name">الكوتش ماستر</div><div class="bar" id="ltxt">تحليل مباريات الغد · الثلاثاء 3 نوفمبر</div></div>
+  <div class="live"><span style="width:10px;height:10px;border-radius:50%;background:#fff;display:inline-block"></span>LIVE</div>
+  <div class="flash" id="flash" style="opacity:0"></div>
+</div>
+<script>
+const RMS = window.RMS || [];
+window.POINT = window.POINT || ((t) => t > 11 && t < 22.5 || t > 24.2 && t < 28.3);
+const FPS = 30;
+const ease = (x) => x < 0 ? 0 : x > 1 ? 1 : 1 - Math.pow(1 - x, 3);
+const pop = (x) => { if (x <= 0) return 0; if (x >= 1) return 1; const c = 1.7; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+const kit = (a, b, stripes) => `<svg class="kit" viewBox="0 0 110 130"><defs><clipPath id="k${a.replace('#','')}"><path d="M30 8 L45 2 Q55 12 65 2 L80 8 L106 26 L94 50 L84 44 L84 126 L26 126 L26 44 L16 50 L4 26 Z"/></clipPath></defs>
+<g clip-path="url(#k${a.replace('#','')})"><rect width="110" height="130" fill="${a}"/>${stripes ? `<rect x="40" width="15" height="130" fill="${b}"/><rect x="70" width="15" height="130" fill="${b}"/><rect x="10" width="15" height="130" fill="${b}"/>` : `<rect y="0" width="110" height="20" fill="${b}"/><rect x="0" y="0" width="22" height="130" fill="${b}"/><rect x="88" y="0" width="22" height="130" fill="${b}"/>`}</g>
+<path d="M30 8 L45 2 Q55 12 65 2 L80 8 L106 26 L94 50 L84 44 L84 126 L26 126 L26 44 L16 50 L4 26 Z" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2"/></svg>`;
+const KIT_H = kit('#a50044', '#004d98', true), KIT_A = kit('#670e36', '#95bfe5', false);
+
+function coachSVG(t, f) {
+  const lvl = RMS[f] || 0;
+  const mouth = Math.max(0.06, Math.min(1, lvl));
+  const blink = (t % 3.7) > 3.6 ? 0.12 : 1;
+  const point = window.POINT ? window.POINT(t) : false;
+  const bob = Math.sin(t * 2.2) * 1.5 + lvl * 2.5;
+  const look = point ? 4 : Math.sin(t * 0.7) * 1.5;
+  const tilt = Math.sin(t * 0.9) * 1.8 + (point ? 4 : 0) + lvl * 1.5;
+  const armA = point ? -62 + Math.sin(t * 3) * 3 : 14 + Math.sin(t * 1.7) * 5 + lvl * 8;
+  const fore = point ? -14 : -78 + Math.sin(t * 2.3) * 10 - lvl * 10;
+  const lArm = 8 + Math.sin(t * 1.3 + 1) * 4 + (lvl > .55 ? -8 : 0);
+  const SUIT = '#1b2a45', SUIT2 = '#14203a', SKIN = '#e3ae88', SKIN2 = '#cf9572';
+  const sleeve = (len, w) => `<path d="M${-w/2} 0 Q0 -6 ${w/2} 0 L${w/2-3} ${len} Q0 ${len+6} ${-w/2+3} ${len} Z" fill="${SUIT}"/><path d="M${w/2-8} 6 L${w/2-5} ${len-4}" stroke="${SUIT2}" stroke-width="5"/>`;
+  const hand = (cx, cy) => `<g><ellipse cx="${cx}" cy="${cy}" rx="17" ry="19" fill="${SKIN}"/><path d="M${cx-12} ${cy+4} Q${cx} ${cy+16} ${cx+12} ${cy+4}" stroke="${SKIN2}" stroke-width="3" fill="none"/><ellipse cx="${cx+14}" cy="${cy-4}" rx="6" ry="10" fill="${SKIN}" transform="rotate(-25 ${cx+14} ${cy-4})"/></g>`;
+  return `
+<ellipse cx="200" cy="630" rx="150" ry="14" fill="rgba(0,0,0,.5)"/>
+<g transform="translate(0 ${bob * 0.4})">
+<path d="M148 440 L140 614 L188 614 L198 456 Z" fill="#121a2b"/><path d="M252 440 L260 614 L212 614 L202 456 Z" fill="#121a2b"/>
+<path d="M198 456 L200 600" stroke="#0b1120" stroke-width="3"/>
+<path d="M128 610 Q134 594 188 598 L192 624 L124 624 Z" fill="#05070b"/><path d="M272 610 Q266 594 212 598 L208 624 L276 624 Z" fill="#05070b"/>
+<path d="M112 242 Q200 206 288 242 L300 452 Q200 476 100 452 Z" fill="${SUIT}"/>
+<path d="M112 242 Q150 228 172 226 L150 300 L118 330 Z" fill="${SUIT2}" opacity=".6"/>
+<path d="M172 222 L200 340 L228 222 Q200 232 172 222 Z" fill="#f4f3ef"/>
+<path d="M172 222 L188 246 L200 232 Z M228 222 L212 246 L200 232 Z" fill="#ffffff" stroke="#d8d6cf" stroke-width="1.5"/>
+<path d="M194 240 L206 240 L203 252 L197 252 Z" fill="#a8861c"/>
+<path d="M197 252 L203 252 L212 326 L200 342 L188 326 Z" fill="#c9a227"/>
+<path d="M199 262 L208 300 M196 290 L206 324" stroke="#e7c35a" stroke-width="3" opacity=".7"/>
+<path d="M170 220 L196 344 L150 300 L132 254 Z" fill="#24365a"/><path d="M230 220 L204 344 L250 300 L268 254 Z" fill="#24365a"/>
+<path d="M150 300 L140 286 L160 280 Z M250 300 L260 286 L240 280 Z" fill="${SUIT}"/>
+<path d="M238 286 L262 280 L262 290 L240 294 Z" fill="#f2efe8"/><path d="M243 283 L250 276 L256 282" fill="#c9a227"/>
+<circle cx="200" cy="372" r="4" fill="#0b1120"/><circle cx="200" cy="404" r="4" fill="#0b1120"/>
+<path d="M228 372 L276 366" stroke="${SUIT2}" stroke-width="4"/>
+<g transform="translate(128 254) rotate(${lArm})">${sleeve(118, 42)}
+<g transform="translate(0 112) rotate(${-24 + Math.sin(t*2)*6})">${sleeve(96, 36)}<rect x="-16" y="86" width="32" height="10" rx="2" fill="#f4f3ef"/>${hand(0, 110)}</g></g>
+<g transform="translate(272 254) rotate(${armA})">${sleeve(116, 42)}
+<g transform="translate(0 110) rotate(${fore})">${sleeve(94, 36)}<rect x="-16" y="84" width="32" height="10" rx="2" fill="#f4f3ef"/>
+<line x1="0" y1="106" x2="${point ? 0 : 8}" y2="${point ? 212 : 196}" stroke="#a8861c" stroke-width="8" stroke-linecap="round"/><line x1="0" y1="106" x2="${point ? 0 : 8}" y2="${point ? 212 : 196}" stroke="#f2d27a" stroke-width="3" stroke-linecap="round"/><circle cx="${point ? 0 : 8}" cy="${point ? 214 : 198}" r="7" fill="#f2d27a"/>${hand(0, 108)}</g></g>
+<path d="M182 192 L182 230 Q200 240 218 230 L218 192 Z" fill="${SKIN2}"/>
+<g transform="rotate(${tilt} 200 150)">
+<ellipse cx="200" cy="138" rx="66" ry="76" fill="${SKIN}"/>
+<path d="M140 150 Q150 196 200 214 Q250 196 260 150 Q262 120 258 104 L262 140 Q248 116 200 112 Q152 116 138 140 L142 104 Q138 120 140 150 Z" fill="${SKIN2}" opacity=".35"/>
+<ellipse cx="134" cy="146" rx="11" ry="18" fill="${SKIN2}"/><ellipse cx="266" cy="146" rx="11" ry="18" fill="${SKIN2}"/>
+<path d="M132 132 Q124 60 200 54 Q278 60 268 132 Q266 104 254 96 Q252 78 230 74 Q200 66 170 74 Q148 80 146 96 Q134 106 132 132 Z" fill="#4a4844"/>
+<path d="M132 132 Q130 112 140 100 L144 140 Z M268 132 Q270 112 260 100 L256 140 Z" fill="#a9a7a0"/>
+<path d="M150 86 Q170 68 200 70 Q232 68 252 86" stroke="#8d8b84" stroke-width="5" fill="none" stroke-linecap="round" opacity=".8"/>
+<path d="M162 80 Q176 72 190 74" stroke="#c9c7bf" stroke-width="4" fill="none" stroke-linecap="round"/>
+<path d="M136 150 Q138 206 200 220 Q262 206 264 150 Q260 184 240 194 Q222 202 200 202 Q178 202 160 194 Q140 184 136 150 Z" fill="#6f6d67"/>
+<path d="M150 170 Q160 196 186 204 M250 170 Q240 196 214 204" stroke="#9c9a93" stroke-width="2" fill="none" opacity=".7"/>
+<path d="M168 172 Q184 162 200 166 Q216 162 232 172 Q222 180 200 178 Q178 180 168 172 Z" fill="#55534e"/>
+<path d="M156 116 Q172 106 188 113" stroke="#3a3935" stroke-width="7" fill="none" stroke-linecap="round"/>
+<path d="M212 113 Q228 106 244 116" stroke="#3a3935" stroke-width="7" fill="none" stroke-linecap="round"/>
+<ellipse cx="173" cy="134" rx="11" ry="${9 * blink}" fill="#fff"/><ellipse cx="227" cy="134" rx="11" ry="${9 * blink}" fill="#fff"/>
+<circle cx="${173 + look}" cy="135" r="${6 * blink}" fill="#3b2a1e"/><circle cx="${227 + look}" cy="135" r="${6 * blink}" fill="#3b2a1e"/>
+<circle cx="${175 + look}" cy="133" r="${1.8 * blink}" fill="#fff"/><circle cx="${229 + look}" cy="133" r="${1.8 * blink}" fill="#fff"/>
+<path d="M161 128 Q173 ${126 - 2*blink} 185 128" stroke="#9a6a4c" stroke-width="2" fill="none"/><path d="M215 128 Q227 ${126 - 2*blink} 239 128" stroke="#9a6a4c" stroke-width="2" fill="none"/>
+<path d="M198 138 Q190 158 196 164 Q204 168 210 162" stroke="#b47a58" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+<ellipse cx="200" cy="${184 + mouth * 3}" rx="${16 - mouth * 3}" ry="${2.5 + mouth * 11}" fill="#4a1810"/>
+<ellipse cx="200" cy="${188 + mouth * 8}" rx="${9 - mouth*2}" ry="${mouth * 4}" fill="#c0504a"/>
+<rect x="${189 + mouth*2}" y="${182 - mouth}" width="${22 - mouth*4}" height="${mouth > .25 ? 4 : 0}" rx="2" fill="#f2efe8"/>
+</g></g>`;
+}
+
+const D = window.DATA;
+const kitOf = (k) => kit(k[0], k[1], k[2]);
+function seg(t) { for (const s of D.segs) if (t >= s.start && t < s.end) return s; return D.segs[D.segs.length - 1]; }
+const dots = (str, t0, t) => `<div class="dots" style="direction:rtl">${String(str || '').slice(0, 5).split('').map((r, i) => `<div class="dot ${r}" style="transform:scale(${pop((t - t0 - i * .12) / .4)})">${r === 'W' ? 'ف' : r === 'D' ? 'ت' : 'خ'}</div>`).join('')}</div>`;
+window.POINT = (t) => { const s = seg(t); if (s.type !== 'match') return false; const l = t - s.start; return l > s.tS + .3 && l < s.tQ - .2 || l > s.tR + .2; };
+function panelHTML(t) {
+  const s = seg(t), lt = t - s.start, L = s.end - s.start;
+  if (s.type === 'intro') {
+    const a = ease((lt - 0.2) / 0.8);
+    const rows = D.matches.map((m, i) => `<div style="opacity:${ease((lt - 2.2 - i * .45) / .4)};transform:translateX(${(1 - ease((lt - 2.2 - i * .45) / .5)) * -60}px);display:flex;justify-content:space-between;width:620px;font-size:23px;font-weight:700;padding:2px 14px;margin:3px 0;background:rgba(255,255,255,.06);border-radius:10px"><bdi dir="ltr">${m.H} × ${m.A}</bdi><span style="color:#c9d4ea;font-size:18px">${m.league_ar}</span></div>`).join('');
+    return `<div style="opacity:${a};text-align:center;transform:scale(${0.9 + 0.1 * pop((lt - .2) / .9)})"><div class="big" style="font-size:44px;line-height:1.15">${D.matches.length} مباريات الغد</div><div style="font-size:22px;font-weight:700;color:#c9d4ea;margin-bottom:6px">${D.date_label}</div>${rows}</div>`;
+  }
+  if (s.type === 'outro') {
+    const a = pop((lt - .2) / 0.7);
+    return `<div style="transform:scale(${a});text-align:center"><div style="font-size:58px;font-weight:900">ما توقعك أنت؟</div>
+    <div class="big" style="font-size:46px;margin:6px 0 26px">اكتبه في التعليقات</div>
+    <div style="display:flex;gap:20px;justify-content:center"><div style="background:#c62828;border-radius:12px;padding:8px 30px;font-size:32px;font-weight:900">اشترك</div>
+    <div style="border:2px solid #c9a227;border-radius:12px;padding:8px 26px;font-size:28px;font-weight:700">النتائج غداً 10:00</div></div></div>`;
+  }
+  const m = D.matches[s.i], r = lt / L;
+  const tS = s.tS, tQ = s.tQ, tR = s.tR;
+  if (lt < tS) {
+    const a = ease(lt / .5);
+    return `<div style="opacity:${a};font-size:30px;font-weight:700;color:#c9d4ea;margin-bottom:14px">${m.league_ar}</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;width:660px">
+      <div style="text-align:center;transform:translateX(${(1 - pop((lt - .3) / .8)) * 300}px)">${kitOf(m.kitH)}<div class="tname" dir="ltr">${m.H}</div></div>
+      <div style="text-align:center;opacity:${ease((lt - 1) / .5)}"><div class="big" style="font-size:64px">×</div><div style="font-size:24px;font-weight:700;color:#c9d4ea">${m.hM} المغرب</div><div style="font-size:24px;font-weight:700;color:#c9d4ea">${m.hK} مكة</div></div>
+      <div style="text-align:center;transform:translateX(${(1 - pop((lt - .6) / .8)) * -300}px)">${kitOf(m.kitA)}<div class="tname" dir="ltr">${m.A}</div></div>
+    </div>`;
+  }
+  if (lt < tQ) {
+    const l2 = lt - tS;
+    const card = (name, form, gf, t0) => `<div style="transform:scale(${pop((l2 - t0) / .6)});text-align:center;background:rgba(255,255,255,.06);border:2px solid #2f4a78;border-radius:16px;padding:10px 16px;width:270px">
+      <div dir="ltr" style="font-size:26px;font-weight:900;margin-bottom:4px;white-space:nowrap">${name}</div>
+      <div style="font-size:20px;color:#c9d4ea;font-weight:700;margin-bottom:6px">آخر 5 مباريات</div>${dots(form, tS + t0 + .4, lt)}
+      <div class="big" style="font-size:42px;line-height:1.15;margin-top:4px;direction:ltr">${gf}</div><div style="font-size:20px;font-weight:700">أهداف في المباراة</div></div>`;
+    return `<div style="font-size:26px;font-weight:900;color:#f2c94c;margin-bottom:8px;opacity:${ease(l2 / .5)}">الأرقام لا تكذب</div>
+    <div style="display:flex;gap:24px;padding-left:100px">${card(m.H, m.formH, m.gfH, .2)}${card(m.A, m.formA, m.gfA, 1.0)}</div><div style="font-size:16px;color:#c9d4ea;margin-top:6px;padding-left:100px">ف فوز · ت تعادل · خ خسارة (الأحدث على اليمين)</div>`;
+  }
+  if (lt < tR) {
+    const p = 1 + Math.sin(t * 14) * 0.04;
+    return `<div style="transform:scale(${p});text-align:center"><div class="big" style="font-size:110px">؟</div><div style="font-size:48px;font-weight:900">ما هو توقعي</div></div>`;
+  }
+  const l3 = lt - tR, k = m.pick === '2' ? m.kitA : m.kitH;
+  const rv = pop(l3 / 0.6), mm = Math.min(m.conf, Math.max(0, (l3 - 1.1) / 1.4 * m.conf));
+  return `<div style="font-size:26px;font-weight:700;color:#c9d4ea">توقع الكوتش ماستر</div>
+    <div style="transform:scale(${rv});display:flex;align-items:center;gap:20px;margin:6px 0 16px">${m.pick === 'X' ? '' : `<div style="transform:scale(.75)">${kitOf(k)}</div>`}<div style="text-align:center"><div class="big" style="font-size:44px;line-height:1.1">${m.pick === 'X' ? 'تعادل' : 'فوز'}</div>${m.pick === 'X' ? '' : `<div class="big" dir="ltr" style="white-space:nowrap;font-size:${Math.min(76, Math.floor(1150 / m.pick_team.length))}px;line-height:1.15">${m.pick_team}</div>`}</div></div>
+    <div style="display:flex;align-items:center;gap:18px;padding-left:120px;opacity:${ease((l3 - 1) / .4)}"><div style="font-size:30px;font-weight:900;color:#f2c94c;direction:ltr">${Math.round(mm)}%</div><div class="meter"><div style="width:${mm}%"></div></div><div style="font-size:26px;font-weight:700;white-space:nowrap">نسبة الثقة</div></div>`;
+}
+
+window.renderFrame = function (f) {
+  const t = f / FPS, s = seg(t);
+  document.getElementById('coach').innerHTML = coachSVG(t, f);
+  document.getElementById('panel').innerHTML = panelHTML(t);
+  document.getElementById('scrh').innerHTML = s.type === 'match' ? `المباراة ${s.i + 1} من ${D.matches.length} · <bdi dir="ltr">${D.matches[s.i].H} × ${D.matches[s.i].A}</bdi>` : 'MASTER GOAL';
+  document.getElementById('b1').style.transform = `rotate(${Math.sin(t * .6) * 10 + 8}deg)`;
+  document.getElementById('b2').style.transform = `rotate(${Math.sin(t * .5 + 2) * 10 - 8}deg)`;
+  let fl = 0;
+  for (const q of D.segs) if (q.type === 'match') { const tr = q.start + q.tR; fl = Math.max(fl, Math.max(0, 1 - Math.abs(t - tr) / 0.16) * 0.5); }
+  document.getElementById('flash').style.opacity = fl;
+  document.getElementById('lower').style.transform = `translateY(${(1 - ease((t - 0.6) / 0.6)) * 120}px)`;
+  document.getElementById('ltxt').textContent = s.type === 'match' ? `${D.matches[s.i].league_ar} · ${D.date_label}` : `تحليل مباريات الغد · ${D.date_label}`;
+};
+</script></body></html>
